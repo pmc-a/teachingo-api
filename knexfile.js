@@ -11,13 +11,13 @@ module.exports = {
           directory: './seeds',
       },
   },
-  production: {
-      client: 'pg',
-      debug: true,
-      connection: process.env.DATABASE_URL,
-      migrations: {
-          tableName: 'knex_migrations',
-      },
-      ssl: true,
-  },
+  // production: {
+  //     client: 'pg',
+  //     debug: true,
+  //     connection: process.env.DATABASE_URL,
+  //     migrations: {
+  //         tableName: 'knex_migrations',
+  //     },
+  //     ssl: true,
+  // },
 };
