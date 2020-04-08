@@ -4,7 +4,7 @@ module.exports = {
       connection: {
           host: '127.0.0.1',
           user: 'postgres',
-          password: 'root',
+          password: process.env.LOCAL_DATABASE_PASSWORD,
           database: 'teachingo_db',
       },
       seeds: {

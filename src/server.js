@@ -4,6 +4,8 @@ const AccessToken = require('twilio').jwt.AccessToken;
 const VideoGrant = AccessToken.VideoGrant;
 const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
+const cors = require('cors');
+
 const saltRounds = 12;
 require('dotenv').config();
 
@@ -15,6 +17,7 @@ const twilioApiKeySID = process.env.TWILIO_API_KEY_SID;
 const twilioApiKeySecret = process.env.TWILIO_API_KEY_SECRET;
 
 app.use(bodyParser.json())
+app.use(cors());
 
 app.get('/api/status', (req, res) => {
   res.status(200).end();
@@ -53,7 +56,8 @@ app.post('/api/create-account', async (req, res) => {
   }
 });
 
-app.get('/api/login', async (req, res) => {
+app.post('/api/login', async (req, res) => {
+  console.log('POST - /api/login');
   const { email, password } = req.body;
 
   try {
