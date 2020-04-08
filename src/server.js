@@ -35,44 +35,49 @@ app.get('/api/status', (req, res) => {
 app.post('/api/create-account', async (req, res) => {
   const { email, password, first_name, last_name, mobile, type } = req.body;
 
-  bcrypt.hash(password, saltRounds, function(err, hash){
-    try {
-      await users.createUser(
-        email,
-        hash,
-        first_name,
-        last_name,
-        mobile,
-        type
-      );
-      res.status(200).send("WooHoo");
-    } catch (error) {
-      console.log(error);
-    }
-  })
+  try {
+    const hash = await bcrypt.hash(password, saltRounds);
+    await users.createUser(
+      email,
+      hash,
+      first_name,
+      last_name,
+      mobile,
+      type
+    );
+
+    res.status(200).json('Successfully created user!');
+  } catch (error) {
+    console.error(error);
+    res.status(500).json('Something went wrong');
+  }
 });
 
 app.get('/api/login', async (req, res) => {
   const { email, password } = req.body;
 
-  user = await users.findUser(email);
+  try {
+    const user = await users.findUser(email);
 
-  if (user[0]){ 
-    console.log(user[0].password)
-    bcrypt.compare(password, user[0].password, function (err, result){
-      if(result){
-        console.log("sucessfull logged in");
-        res.redirect('/api/status');
-      } else {
-        console.log("Incorrect password");
-        res.send('Incorrect username or password');
-      }
-    })
-  } else{
-    console.log('No user found')
-    res.send('Incorrect username or password');
+    if (user[0]) {
+      bcrypt.compare(password, user[0].password, (err, result) => {
+        if (err) throw new Error(err);
+
+        if (result) {
+          res.status(200).send(result);
+        } else {
+          console.log('Incorrect password');
+          res.status(400).send('Incorrect username or password');
+        }
+      });
+    } else {
+      console.log('No user found');
+      res.status(400).send('Incorrect username or password');
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Something went wrong');
   }
-
-})
+});
 
 module.exports = { app };
