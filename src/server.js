@@ -51,4 +51,27 @@ app.post('/api/create-account', (req, res) => {
   })
 });
 
+app.get('/api/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  user = await users.findUser(email);
+
+  if (user[0]){ 
+    console.log(user[0].password)
+    bcrypt.compare(password, user[0].password, function (err, result){
+      if(result){
+        console.log("sucessfull logged in");
+        res.redirect('/api/status');
+      } else {
+        console.log("Incorrect password");
+        res.send('Incorrect username or password');
+      }
+    })
+  } else{
+    console.log('No user found')
+    res.send('Incorrect username or password');
+  }
+
+})
+
 module.exports = { app };

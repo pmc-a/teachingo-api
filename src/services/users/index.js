@@ -17,7 +17,9 @@ const createUser = knex => (email, password, first_name, last_name, mobile) => {
 
 const findUser = knex => (email) =>{
     try {
-        return knex('users').where('email', email).then(resp => resp);
+        return knex.select('email', 'password', 'first_name', 'last_name', 'mobile')
+        .from('users')
+        .where({email: email});
     } catch (error) {
         console.log(error);
         throw new Error('No user found');
