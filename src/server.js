@@ -32,19 +32,20 @@ app.get('/api/status', (req, res) => {
 //   console.log(`issued token for ${identity} in room ${roomName}`);
 // });
 
-app.post('/api/create-account', (req, res) => {
-  const { email, password, first_name, last_name, mobile } = req.body;
+app.post('/api/create-account', async (req, res) => {
+  const { email, password, first_name, last_name, mobile, type } = req.body;
 
   bcrypt.hash(password, saltRounds, function(err, hash){
     try {
-      users.createUser(
+      await users.createUser(
         email,
         hash,
         first_name,
         last_name,
-        mobile
+        mobile,
+        type
       );
-      console.log("Successfully saved user")
+      res.status(200).send("WooHoo");
     } catch (error) {
       console.log(error);
     }

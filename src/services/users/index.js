@@ -1,17 +1,17 @@
-const createUser = knex => (email, password, first_name, last_name, mobile) => {
+const createUser = knex => (email, password, first_name, last_name, mobile, type) => {
     try {
         return knex('users').insert({
-            email: email,
-            password: password,
-            first_name: first_name,
-            last_name: last_name,
-            mobile: mobile
-        }).then(resp => resp);
+            email,
+            password,
+            first_name,
+            last_name,
+            mobile, 
+            type
+        });
 
     } catch (error) {
         console.log(error);
         throw new Error('Something has went wrong when saving user');
-
     }
 };
 
@@ -19,7 +19,7 @@ const findUser = knex => (email) =>{
     try {
         return knex.select('email', 'password', 'first_name', 'last_name', 'mobile')
         .from('users')
-        .where({email: email});
+        .where({email});
     } catch (error) {
         console.log(error);
         throw new Error('No user found');
