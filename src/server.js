@@ -10,7 +10,7 @@ const twilioApiKeySID = process.env.TWILIO_API_KEY_SID;
 const twilioApiKeySecret = process.env.TWILIO_API_KEY_SECRET;
 
 app.get('/api/status', (req, res) => {
-  res.status(200).end();
+    res.status(200).end();
 });
 
 // app.get('/token', (req, res) => {
