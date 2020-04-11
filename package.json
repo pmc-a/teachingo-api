@@ -4,15 +4,16 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "lint": "eslint ./src",
-    "lint:fix": "eslint --fix ./src",
-    "migrations": "knex migrate:latest",
+    "lint": "eslint './src'",
+    "lint:fix": "eslint --fix './src'",
+    "knex:migrations": "knex migrate:latest",
+    "knex:seeds": "knex seed:run",
     "start": "node src/index.js",
     "test": "jest"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "Apache",
   "dependencies": {
     "bcrypt": "^4.0.1",
     "body-parser": "^1.19.0",
