@@ -1,10 +1,12 @@
 const request = require('supertest');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 const { app } = require('../server');
 const { users } = require('../services');
 
 jest.mock('bcrypt');
+jest.mock('jsonwebtoken');
 jest.mock('../services');
 
 const mockSignUpData = {
@@ -97,7 +99,7 @@ describe('server', () => {
 
         it('should respond with a 400 error if the hashed password does not equal the entered password', (done) => {
             users.findUser = jest.fn().mockResolvedValue(['email-address']);
-            bcrypt.comapre = jest.fn().mockRejectedValue('Does not match');
+            bcrypt.compare = jest.fn().mockResolvedValue(false);
 
             request(app)
                 .post('/api/login')
@@ -107,19 +109,17 @@ describe('server', () => {
                 .expect(400, done);
         });
 
-        if (
-            ('should respond with a 200 success when the user is found and the password matches',
-            (done) => {
-                users.findUser = jest.fn().mockResolvedValue(['email-address']);
-                bcrypt.comapre = jest.fn().mockResolvedValue('Passwords Match');
+        it('should respond with a 200 success when the user is found and the password matches', (done) => {
+            users.findUser = jest.fn().mockResolvedValue(['email-address']);
+            bcrypt.compare = jest.fn().mockResolvedValue('Passwords Match');
+            jwt.sign = jest.fn().mockResolvedValue('token');
 
-                request(app)
-                    .post('/api/login')
-                    .send(mockLoginData)
-                    .set('Accept', 'application/json')
-                    .expect('Content-Type', /json/)
-                    .expect(200, done);
-            })
-        );
+            request(app)
+                .post('/api/login')
+                .send(mockLoginData)
+                .set('Accept', 'application/json')
+                .expect('Content-Type', /json/)
+                .expect(200, done);
+        });
     });
 });

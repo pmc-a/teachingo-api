@@ -6,7 +6,8 @@ const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
-const checkAuth = require('./middleware/check-auth');
+const { verifyToken } = require('./middleware/check-auth');
+const { logOriginalUrl, logMethod } = require('./middleware/server-logging');
 
 const saltRounds = 12;
 require('dotenv').config();
@@ -24,7 +25,7 @@ app.use(cors());
 const publicRoutes = [logOriginalUrl, logMethod];
 const privateRoutes = [...publicRoutes, verifyToken];
 
-app.post('/api/status', privateRoutes, (req, res) => {
+app.get('/api/status', (req, res) => {
     res.status(200).end();
 });
 
@@ -68,8 +69,10 @@ app.post('/api/login', publicRoutes, async (req, res) => {
         const user = await users.findUser(email);
 
         if (user[0]) {
+            console.log('Hitting inside users');
             const result = await bcrypt.compare(password, user[0].password);
             if (result) {
+                console.log('creating token');
                 const token = jwt.sign({ email }, process.env.JWT_KEY, {
                     expiresIn: '8hr',
                 });
@@ -87,26 +90,5 @@ app.post('/api/login', publicRoutes, async (req, res) => {
         res.status(500).json('Something went wrong');
     }
 });
-
-function logOriginalUrl(req, res, next) {
-    console.log('Request URL:', req.originalUrl);
-    next();
-}
-
-function logMethod(req, res, next) {
-    console.log('Request Type:', req.method);
-    next();
-}
-
-function verifyToken(req, res, next) {
-    try {
-        checkAuth(req.body.userToken) != null
-            ? next()
-            : res.status(401).json('User is unauthorized. Please log in.');
-    } catch (err) {
-        console.error(err);
-        res.status(401).json('User is unauthorized. Please log in.');
-    }
-}
 
 module.exports = { app };
