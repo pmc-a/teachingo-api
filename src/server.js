@@ -64,23 +64,20 @@ app.post('/api/login', async (req, res) => {
     const user = await users.findUser(email);
 
     if (user[0]) {
-      bcrypt.compare(password, user[0].password, (err, result) => {
-        if (err) throw new Error(err);
-
-        if (result) {
-          res.status(200).send(result);
-        } else {
-          console.log('Incorrect password');
-          res.status(400).send('Incorrect username or password');
-        }
-      });
+      const result = await bcrypt.compare(password, user[0].password);
+      if (result) {
+        res.status(200).send(result);
+      } else {
+        console.log('Incorrect password');
+        res.status(400).json('Incorrect username or password');
+      }
     } else {
       console.log('No user found');
-      res.status(400).send('Incorrect username or password');
+      res.status(400).json('Incorrect username or password');
     }
   } catch (error) {
     console.error(error);
-    res.status(500).send('Something went wrong');
+    res.status(500).json('Something went wrong');
   }
 });
 

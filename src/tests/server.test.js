@@ -7,14 +7,19 @@ const { users } = require('../services');
 jest.mock('bcrypt');
 jest.mock('../services');
 
-const mockData = {
-	email: 'mock@test.com',
-	password: 'mock-password',
-	first_name: 'Mock',
-	last_name: 'Jest',
-	mobile: '1234334324',
-	type: 'teacher',
+const mockSignUpData = {
+    email: 'mock@test.com',
+    password: 'mock-password',
+    first_name: 'Mock',
+    last_name: 'Jest',
+    mobile: '1234334324',
+    type: 'teacher',
 };
+
+const mockLoginData = {
+    email: 'mock@mock.com',
+    password: 'pasword123'
+}
 
 describe('server', () => {
     describe('#/api/status', () => {
@@ -39,7 +44,7 @@ describe('server', () => {
 
             request(app)
                 .post('/api/create-account')
-                .send(mockData)
+                .send(mockSignUpData)
                 .set('Accept', 'application/json')
                 .expect('Content-Type', /json/)
                 .expect(500, done)
@@ -51,7 +56,7 @@ describe('server', () => {
 
             request(app)
                 .post('/api/create-account')
-                .send(mockData)
+                .send(mockSignUpData)
                 .set('Accept', 'application/json')
                 .expect('Content-Type', /json/)
                 .expect(500, done)
@@ -63,7 +68,7 @@ describe('server', () => {
 
             request(app)
                 .post('/api/create-account')
-                .send(mockData)
+                .send(mockSignUpData)
                 .set('Accept', 'application/json')
                 .expect('Content-Type', /json/)
                 .expect(200, done)
@@ -71,6 +76,41 @@ describe('server', () => {
     });
 
     describe('#/api/login', () => {
-        // TODO: Add unit test coverage
+        afterEach(() => {
+            jest.resetAllMocks();
+        });
+        it('should respond with a 500 error when no user is found', done => {
+            users.findUser = jest.fn().mockRejectedValue('User not found');
+            request(app)
+                .post('/api/login')
+                .send(mockLoginData)
+                .set('Accept', 'application/json')
+                .expect('Content-Type', /json/)
+                .expect(500, done)
+        });
+
+        it('should respond with a 400 error if the hashed password does not equal the entered password', done => {
+            users.findUser = jest.fn().mockResolvedValue(['email-address']);
+            bcrypt.comapre = jest.fn().mockRejectedValue('Does not match');
+
+            request(app)
+                .post('/api/login')
+                .send(mockLoginData)
+                .set('Accept', 'application/json')
+                .expect('Content-Type', /json/)
+                .expect(400, done)
+        })
+
+        if ('should respond with a 200 success when the user is found and the password matches', done => {
+            users.findUser = jest.fn().mockResolvedValue(['email-address']);
+            bcrypt.comapre = jest.fn().mockResolvedValue('Passwords Match');
+
+            request(app)
+                .post('/api/login')
+                .send(mockLoginData)
+                .set('Accept', 'application/json')
+                .expect('Content-Type', /json/)
+                .expect(200, done)
+        });
     });
 });
