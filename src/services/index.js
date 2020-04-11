@@ -3,9 +3,9 @@ const { createUser, findUser } = require('./users');
 
 const users = {
     createUser: createUser(knex),
-    findUser: findUser(knex)
-}
+    findUser: findUser(knex),
+};
 
 module.exports = {
     users,
-}
+};

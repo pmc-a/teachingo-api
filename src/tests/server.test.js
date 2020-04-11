@@ -18,12 +18,12 @@ const mockSignUpData = {
 
 const mockLoginData = {
     email: 'mock@mock.com',
-    password: 'pasword123'
-}
+    password: 'pasword123',
+};
 
 describe('server', () => {
     describe('#/api/status', () => {
-        it('should return 200 from the status endpoint', done => {
+        it('should return 200 from the status endpoint', (done) => {
             request(app)
                 .get('/api/status')
                 .expect(200)
@@ -39,39 +39,45 @@ describe('server', () => {
             jest.resetAllMocks();
         });
 
-        it('should respond with a 500 error when bcrypt fails to hash the password', done => {
-            bcrypt.hash = jest.fn().mockRejectedValue('Some mock bcrypt error hash error');
+        it('should respond with a 500 error when bcrypt fails to hash the password', (done) => {
+            bcrypt.hash = jest
+                .fn()
+                .mockRejectedValue('Some mock bcrypt error hash error');
 
             request(app)
                 .post('/api/create-account')
                 .send(mockSignUpData)
                 .set('Accept', 'application/json')
                 .expect('Content-Type', /json/)
-                .expect(500, done)
+                .expect(500, done);
         });
 
-        it('should respond with a 500 error when user service fails to create the user', done => {
+        it('should respond with a 500 error when user service fails to create the user', (done) => {
             bcrypt.hash = jest.fn().mockResolvedValue('Successful mock hash');
-            users.createUser = jest.fn().mockRejectedValue('Some mock user service error');
+            users.createUser = jest
+                .fn()
+                .mockRejectedValue('Some mock user service error');
 
             request(app)
                 .post('/api/create-account')
                 .send(mockSignUpData)
                 .set('Accept', 'application/json')
                 .expect('Content-Type', /json/)
-                .expect(500, done)
+                .expect(500, done);
         });
 
-        it('should respond with a 200 success when bcrypt successfully hashes password and user service creates the user', done => {
+        it('should respond with a 200 success when bcrypt successfully hashes password and user service creates the user', (done) => {
             bcrypt.hash = jest.fn().mockResolvedValue('Successful mock hash');
-            users.createUser = jest.fn().mockResolvedValue('Successfully mocked creation of user!');
+            users.createUser = jest
+                .fn()
+                .mockResolvedValue('Successfully mocked creation of user!');
 
             request(app)
                 .post('/api/create-account')
                 .send(mockSignUpData)
                 .set('Accept', 'application/json')
                 .expect('Content-Type', /json/)
-                .expect(200, done)
+                .expect(200, done);
         });
     });
 
@@ -79,17 +85,17 @@ describe('server', () => {
         afterEach(() => {
             jest.resetAllMocks();
         });
-        it('should respond with a 500 error when no user is found', done => {
+        it('should respond with a 500 error when no user is found', (done) => {
             users.findUser = jest.fn().mockRejectedValue('User not found');
             request(app)
                 .post('/api/login')
                 .send(mockLoginData)
                 .set('Accept', 'application/json')
                 .expect('Content-Type', /json/)
-                .expect(500, done)
+                .expect(500, done);
         });
 
-        it('should respond with a 400 error if the hashed password does not equal the entered password', done => {
+        it('should respond with a 400 error if the hashed password does not equal the entered password', (done) => {
             users.findUser = jest.fn().mockResolvedValue(['email-address']);
             bcrypt.comapre = jest.fn().mockRejectedValue('Does not match');
 
@@ -98,19 +104,22 @@ describe('server', () => {
                 .send(mockLoginData)
                 .set('Accept', 'application/json')
                 .expect('Content-Type', /json/)
-                .expect(400, done)
-        })
-
-        if ('should respond with a 200 success when the user is found and the password matches', done => {
-            users.findUser = jest.fn().mockResolvedValue(['email-address']);
-            bcrypt.comapre = jest.fn().mockResolvedValue('Passwords Match');
-
-            request(app)
-                .post('/api/login')
-                .send(mockLoginData)
-                .set('Accept', 'application/json')
-                .expect('Content-Type', /json/)
-                .expect(200, done)
+                .expect(400, done);
         });
+
+        if (
+            ('should respond with a 200 success when the user is found and the password matches',
+            (done) => {
+                users.findUser = jest.fn().mockResolvedValue(['email-address']);
+                bcrypt.comapre = jest.fn().mockResolvedValue('Passwords Match');
+
+                request(app)
+                    .post('/api/login')
+                    .send(mockLoginData)
+                    .set('Accept', 'application/json')
+                    .expect('Content-Type', /json/)
+                    .expect(200, done);
+            })
+        );
     });
 });

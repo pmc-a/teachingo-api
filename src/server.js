@@ -16,11 +16,11 @@ const twilioAccountSid = process.env.TWILIO_ACCOUNT_SID;
 const twilioApiKeySID = process.env.TWILIO_API_KEY_SID;
 const twilioApiKeySecret = process.env.TWILIO_API_KEY_SECRET;
 
-app.use(bodyParser.json())
+app.use(bodyParser.json());
 app.use(cors());
 
 app.get('/api/status', (req, res) => {
-  res.status(200).end();
+    res.status(200).end();
 });
 
 // app.get('/token', (req, res) => {
@@ -36,49 +36,49 @@ app.get('/api/status', (req, res) => {
 // });
 
 app.post('/api/create-account', async (req, res) => {
-  const { email, password, first_name, last_name, mobile, type } = req.body;
+    const { email, password, first_name, last_name, mobile, type } = req.body;
 
-  try {
-    const hash = await bcrypt.hash(password, saltRounds);
-    await users.createUser(
-      email,
-      hash,
-      first_name,
-      last_name,
-      mobile,
-      type
-    );
+    try {
+        const hash = await bcrypt.hash(password, saltRounds);
+        await users.createUser(
+            email,
+            hash,
+            first_name,
+            last_name,
+            mobile,
+            type
+        );
 
-    res.status(200).json('Successfully created user!');
-  } catch (error) {
-    console.error(error);
-    res.status(500).json('Something went wrong');
-  }
+        res.status(200).json('Successfully created user!');
+    } catch (error) {
+        console.error(error);
+        res.status(500).json('Something went wrong');
+    }
 });
 
 app.post('/api/login', async (req, res) => {
-  console.log('POST - /api/login');
-  const { email, password } = req.body;
+    console.log('POST - /api/login');
+    const { email, password } = req.body;
 
-  try {
-    const user = await users.findUser(email);
+    try {
+        const user = await users.findUser(email);
 
-    if (user[0]) {
-      const result = await bcrypt.compare(password, user[0].password);
-      if (result) {
-        res.status(200).send(result);
-      } else {
-        console.log('Incorrect password');
-        res.status(400).json('Incorrect username or password');
-      }
-    } else {
-      console.log('No user found');
-      res.status(400).json('Incorrect username or password');
+        if (user[0]) {
+            const result = await bcrypt.compare(password, user[0].password);
+            if (result) {
+                res.status(200).send(result);
+            } else {
+                console.log('Incorrect password');
+                res.status(400).json('Incorrect username or password');
+            }
+        } else {
+            console.log('No user found');
+            res.status(400).json('Incorrect username or password');
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json('Something went wrong');
     }
-  } catch (error) {
-    console.error(error);
-    res.status(500).json('Something went wrong');
-  }
 });
 
 module.exports = { app };
