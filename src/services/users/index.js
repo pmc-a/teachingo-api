@@ -24,7 +24,14 @@ const createUser = (knex) => (
 const findUser = (knex) => (email) => {
     try {
         return knex
-            .select('email', 'password', 'first_name', 'last_name', 'mobile')
+            .select(
+                'email',
+                'password',
+                'first_name',
+                'last_name',
+                'mobile',
+                'type'
+            )
             .from('users')
             .where({ email });
     } catch (error) {

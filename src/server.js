@@ -74,7 +74,7 @@ app.post('/api/login', publicRoutes, async (req, res) => {
                 const token = jwt.sign({ email }, process.env.JWT_KEY, {
                     expiresIn: '8hr',
                 });
-                res.status(200).json({ token });
+                res.status(200).json({ type: user[0].type, token });
             } else {
                 console.log('Incorrect password');
                 res.status(400).json('Incorrect username or password');
