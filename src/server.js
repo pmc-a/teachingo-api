@@ -69,10 +69,8 @@ app.post('/api/login', publicRoutes, async (req, res) => {
         const user = await users.findUser(email);
 
         if (user[0]) {
-            console.log('Hitting inside users');
             const result = await bcrypt.compare(password, user[0].password);
             if (result) {
-                console.log('creating token');
                 const token = jwt.sign({ email }, process.env.JWT_KEY, {
                     expiresIn: '8hr',
                 });
