@@ -3,7 +3,7 @@ module.exports = {
         client: 'pg',
         connection: {
             host: '127.0.0.1',
-            user: 'postgres',
+            user: process.env.LOCAL_DATABASE_USER,
             password: process.env.LOCAL_DATABASE_PASSWORD,
             database: 'teachingo_db',
         },

@@ -4,7 +4,10 @@ const AccessToken = require('twilio').jwt.AccessToken;
 const VideoGrant = AccessToken.VideoGrant;
 const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const cors = require('cors');
+const { verifyToken } = require('./middleware/check-auth');
+const { logOriginalUrl, logMethod } = require('./middleware/server-logging');
 
 const saltRounds = 12;
 require('dotenv').config();
@@ -18,6 +21,9 @@ const twilioApiKeySecret = process.env.TWILIO_API_KEY_SECRET;
 
 app.use(bodyParser.json());
 app.use(cors());
+
+const publicRoutes = [logOriginalUrl, logMethod];
+const privateRoutes = [...publicRoutes, verifyToken];
 
 app.get('/api/status', (req, res) => {
     res.status(200).end();
@@ -35,7 +41,7 @@ app.get('/api/status', (req, res) => {
 //   console.log(`issued token for ${identity} in room ${roomName}`);
 // });
 
-app.post('/api/create-account', async (req, res) => {
+app.post('/api/create-account', publicRoutes, async (req, res) => {
     const { email, password, first_name, last_name, mobile, type } = req.body;
 
     try {
@@ -56,8 +62,7 @@ app.post('/api/create-account', async (req, res) => {
     }
 });
 
-app.post('/api/login', async (req, res) => {
-    console.log('POST - /api/login');
+app.post('/api/login', publicRoutes, async (req, res) => {
     const { email, password } = req.body;
 
     try {
@@ -66,7 +71,10 @@ app.post('/api/login', async (req, res) => {
         if (user[0]) {
             const result = await bcrypt.compare(password, user[0].password);
             if (result) {
-                res.status(200).send(result);
+                const token = jwt.sign({ email }, process.env.JWT_KEY, {
+                    expiresIn: '8hr',
+                });
+                res.status(200).json({ token });
             } else {
                 console.log('Incorrect password');
                 res.status(400).json('Incorrect username or password');
