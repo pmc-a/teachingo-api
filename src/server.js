@@ -4,6 +4,7 @@ const AccessToken = require('twilio').jwt.AccessToken;
 const VideoGrant = AccessToken.VideoGrant;
 const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
+var jwt = require('jsonwebtoken');
 const cors = require('cors');
 
 const saltRounds = 12;
@@ -66,7 +67,10 @@ app.post('/api/login', async (req, res) => {
         if (user[0]) {
             const result = await bcrypt.compare(password, user[0].password);
             if (result) {
-                res.status(200).send(result);
+                const token = jwt.sign({ email }, process.env.JWT_KEY, {
+                    expiresIn: '8hr',
+                });
+                res.status(200).json({ token });
             } else {
                 console.log('Incorrect password');
                 res.status(400).json('Incorrect username or password');
