@@ -4,8 +4,9 @@ const AccessToken = require('twilio').jwt.AccessToken;
 const VideoGrant = AccessToken.VideoGrant;
 const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
-var jwt = require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
 const cors = require('cors');
+const checkAuth = require('./middleware/check-auth');
 
 const saltRounds = 12;
 require('dotenv').config();
@@ -20,7 +21,10 @@ const twilioApiKeySecret = process.env.TWILIO_API_KEY_SECRET;
 app.use(bodyParser.json());
 app.use(cors());
 
-app.get('/api/status', (req, res) => {
+const publicRoutes = [logOriginalUrl, logMethod];
+const privateRoutes = [...publicRoutes, verifyToken];
+
+app.post('/api/status', privateRoutes, (req, res) => {
     res.status(200).end();
 });
 
@@ -36,7 +40,7 @@ app.get('/api/status', (req, res) => {
 //   console.log(`issued token for ${identity} in room ${roomName}`);
 // });
 
-app.post('/api/create-account', async (req, res) => {
+app.post('/api/create-account', publicRoutes, async (req, res) => {
     const { email, password, first_name, last_name, mobile, type } = req.body;
 
     try {
@@ -57,8 +61,7 @@ app.post('/api/create-account', async (req, res) => {
     }
 });
 
-app.post('/api/login', async (req, res) => {
-    console.log('POST - /api/login');
+app.post('/api/login', publicRoutes, async (req, res) => {
     const { email, password } = req.body;
 
     try {
@@ -84,5 +87,26 @@ app.post('/api/login', async (req, res) => {
         res.status(500).json('Something went wrong');
     }
 });
+
+function logOriginalUrl(req, res, next) {
+    console.log('Request URL:', req.originalUrl);
+    next();
+}
+
+function logMethod(req, res, next) {
+    console.log('Request Type:', req.method);
+    next();
+}
+
+function verifyToken(req, res, next) {
+    try {
+        checkAuth(req.body.userToken) != null
+            ? next()
+            : res.status(401).json('User is unauthorized. Please log in.');
+    } catch (err) {
+        console.error(err);
+        res.status(401).json('User is unauthorized. Please log in.');
+    }
+}
 
 module.exports = { app };
