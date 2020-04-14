@@ -1,5 +1,7 @@
 # Teachingo API 🧠
 
+![Build](https://github.com/pmc-a/teachingo-api/workflows/Build/badge.svg)
+
 Node.js service that powers the Teachingo Client 🚀
 
 ## Technology Stack
