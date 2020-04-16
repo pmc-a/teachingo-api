@@ -12,7 +12,7 @@ const { logOriginalUrl, logMethod } = require('./middleware/server-logging');
 const saltRounds = 12;
 require('dotenv').config();
 
-const { users } = require('./services');
+const { lessons, users } = require('./services');
 
 const MAX_ALLOWED_SESSION_DURATION = 14400;
 const twilioAccountSid = process.env.TWILIO_ACCOUNT_SID;
@@ -40,6 +40,24 @@ app.get('/api/status', (req, res) => {
 //   res.send(token.toJwt());
 //   console.log(`issued token for ${identity} in room ${roomName}`);
 // });
+
+app.get('/api/users/:userId/lessons', privateRoutes, async (req, res) => {
+    // TODO: Where are we going to verify the userId?
+    // We need to know if the userId passed in is a student or a teacher.
+    // We could either pass this as a param/queryParam as part of the client request (meh)
+    // Or we could perform a quick SELECT on the user table server side (here) to check the type and then handle that appropriately.
+    try {
+        const teacherLessons = await lessons.getLessonsByUserId(
+            req.params.userId
+        );
+        res.status(200).json(teacherLessons);
+    } catch (error) {
+        console.error(
+            `Error fetching lessons for userId: ${req.params.userId}`
+        );
+        res.status(500).send('Error fetching lessons');
+    }
+});
 
 app.post('/api/create-account', publicRoutes, async (req, res) => {
     const { email, password, first_name, last_name, mobile, type } = req.body;
