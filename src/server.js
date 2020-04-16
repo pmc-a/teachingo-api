@@ -55,7 +55,7 @@ app.get('/api/users/:userId/lessons', privateRoutes, async (req, res) => {
         console.error(
             `Error fetching lessons for userId: ${req.params.userId}`
         );
-        res.status(500).send('Error fetching lessons');
+        res.status(500).json('Error fetching lessons');
     }
 });
 
