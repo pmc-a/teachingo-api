@@ -46,8 +46,96 @@ describe('server', () => {
     });
 
     describe('#/api/lessons', () => {
+        it('should respond with a 500 error when something went wrong fetching the type of user', (done) => {
+            users.getUserTypeById = jest.fn().mockRejectedValue('mock-error');
+
+            request(app)
+                .get('/api/lessons')
+                .expect(500)
+                .expect('Content-Type', /json/)
+                .end((err, res) => {
+                    expect(res.body).toEqual('Error fetching lessons');
+                    if (err) return done(err);
+                    done();
+                });
+        });
+
+        describe('when user type is teacher', () => {
+            beforeEach(() => {
+                users.getUserTypeById = jest
+                    .fn()
+                    .mockResolvedValue([{ type: 'teacher' }]);
+            });
+
+            it('should respond with a 500 error when something went wrong fetching the lessons data for a user', (done) => {
+                lessons.getTeacherLessonsByUserId = jest
+                    .fn()
+                    .mockRejectedValue('Mock error yo!');
+
+                request(app)
+                    .get('/api/lessons')
+                    .expect(500)
+                    .expect('Content-Type', /json/)
+                    .end((err, res) => {
+                        expect(res.body).toEqual('Error fetching lessons');
+                        if (err) return done(err);
+                        done();
+                    });
+            });
+
+            it('should respond with a 200 and empty lesson data when user is not found', (done) => {
+                const expectedResponse = [];
+
+                lessons.getTeacherLessonsByUserId = jest
+                    .fn()
+                    .mockResolvedValue([]);
+
+                request(app)
+                    .get('/api/lessons')
+                    .expect(200)
+                    .expect('Content-Type', /json/)
+                    .end((err, res) => {
+                        expect(res.body).toEqual(expectedResponse);
+                        if (err) return done(err);
+                        done();
+                    });
+            });
+
+            it('should return 200 and lesson data when lessons are succesfully fetched for a user', (done) => {
+                const mockUserId = 12345;
+                const mockResponseBody = [
+                    {
+                        id: 1,
+                        teacher_id: mockUserId,
+                        class_id: 1,
+                    },
+                ];
+
+                lessons.getTeacherLessonsByUserId = jest
+                    .fn()
+                    .mockResolvedValue(mockResponseBody);
+
+                request(app)
+                    .get('/api/lessons')
+                    .expect(200)
+                    .end((err, res) => {
+                        expect(res.body).toEqual(mockResponseBody);
+                        if (err) return done(err);
+                        done();
+                    });
+            });
+        });
+    });
+
+    describe('when user type is student', () => {
+        beforeEach(() => {
+            users.getUserTypeById = jest
+                .fn()
+                .mockResolvedValue([{ type: 'student' }]);
+        });
+
         it('should respond with a 500 error when something went wrong fetching the lessons data for a user', (done) => {
-            lessons.getLessonsByUserId = jest
+            lessons.getStudentLessonsByUserId = jest
                 .fn()
                 .mockRejectedValue('Mock error yo!');
 
@@ -65,10 +153,10 @@ describe('server', () => {
         it('should respond with a 200 and empty lesson data when user is not found', (done) => {
             const expectedResponse = [];
 
-            lessons.getLessonsByUserId = jest.fn().mockResolvedValue([]);
+            lessons.getStudentLessonsByUserId = jest.fn().mockResolvedValue([]);
 
             request(app)
-                .get(`/api/lessons`)
+                .get('/api/lessons')
                 .expect(200)
                 .expect('Content-Type', /json/)
                 .end((err, res) => {
@@ -88,12 +176,12 @@ describe('server', () => {
                 },
             ];
 
-            lessons.getLessonsByUserId = jest
+            lessons.getStudentLessonsByUserId = jest
                 .fn()
                 .mockResolvedValue(mockResponseBody);
 
             request(app)
-                .get(`/api/lessons`)
+                .get('/api/lessons')
                 .expect(200)
                 .end((err, res) => {
                     expect(res.body).toEqual(mockResponseBody);

@@ -1,9 +1,13 @@
 const knex = require('./knex');
-const { getLessonsByUserId } = require('./lessons');
+const {
+    getStudentLessonsByUserId,
+    getTeacherLessonsByUserId,
+} = require('./lessons');
 const { createUser, findUser, getUserTypeById } = require('./users');
 
 const lessons = {
-    getLessonsByUserId: getLessonsByUserId(knex),
+    getStudentLessonsByUserId: getStudentLessonsByUserId(knex),
+    getTeacherLessonsByUserId: getTeacherLessonsByUserId(knex),
 };
 
 const users = {

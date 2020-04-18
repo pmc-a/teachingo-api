@@ -43,25 +43,27 @@ app.get('/api/status', (req, res) => {
 //   console.log(`issued token for ${identity} in room ${roomName}`);
 // });
 
+/**
+ * Fetch lessons for a particular user
+ * User is determined on their access token
+ * The JWT contains their user ID & email - this decodes the token and uses the ID to grab lessons
+ */
 app.get('/api/lessons', privateRoutes, async (req, res) => {
-    // TODO: Where are we going to verify the userId?
-    // We need to know if the userId passed in is a student or a teacher.
-    // We could either pass this as a param/queryParam as part of the client request (meh)
-    // Or we could perform a quick SELECT on the user table server side (here) to check the type and then handle that appropriately.
-
     try {
         // Determine the userID from the userToken that has been submitted with the request
         const { id } = decodeToken(req.headers.authorization);
         const userType = await users.getUserTypeById(id);
 
-        if (userType[0].type === 'teacher') {
-            const teacherLessons = await lessons.getLessonsByUserId(id);
-            res.status(200).json(teacherLessons);
-        } else {
-            res.status(404).json('User not found');
-        }
+        console.log({ userType });
+
+        const lessonResult =
+            userType[0].type === 'teacher'
+                ? await lessons.getTeacherLessonsByUserId(id)
+                : await lessons.getStudentLessonsByUserId(id);
+
+        res.status(200).json(lessonResult);
     } catch (error) {
-        console.error('Error fetching lessons for user');
+        console.log(error);
         res.status(500).json('Error fetching lessons');
     }
 });
