@@ -54,8 +54,6 @@ app.get('/api/lessons', privateRoutes, async (req, res) => {
         const { id } = decodeToken(req.headers.authorization);
         const userType = await users.getUserTypeById(id);
 
-        console.log({ userType });
-
         const lessonResult =
             userType[0].type === 'teacher'
                 ? await lessons.getTeacherLessonsByUserId(id)
