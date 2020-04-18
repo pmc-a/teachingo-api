@@ -1,6 +1,6 @@
 const knex = require('./knex');
 const { getLessonsByUserId } = require('./lessons');
-const { createUser, findUser } = require('./users');
+const { createUser, findUser, getUserTypeById } = require('./users');
 
 const lessons = {
     getLessonsByUserId: getLessonsByUserId(knex),
@@ -9,6 +9,7 @@ const lessons = {
 const users = {
     createUser: createUser(knex),
     findUser: findUser(knex),
+    getUserTypeById: getUserTypeById(knex),
 };
 
 module.exports = {

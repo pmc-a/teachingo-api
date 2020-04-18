@@ -52,9 +52,14 @@ app.get('/api/lessons', privateRoutes, async (req, res) => {
     try {
         // Determine the userID from the userToken that has been submitted with the request
         const { id } = decodeToken(req.headers.authorization);
+        const userType = await users.getUserTypeById(id);
 
-        const teacherLessons = await lessons.getLessonsByUserId(id);
-        res.status(200).json(teacherLessons);
+        if (userType[0].type === 'teacher') {
+            const teacherLessons = await lessons.getLessonsByUserId(id);
+            res.status(200).json(teacherLessons);
+        } else {
+            res.status(404).json('User not found');
+        }
     } catch (error) {
         console.error('Error fetching lessons for user');
         res.status(500).json('Error fetching lessons');
