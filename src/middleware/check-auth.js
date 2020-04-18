@@ -11,8 +11,7 @@ function checkAuth(userToken) {
 
 function verifyToken(req, res, next) {
     try {
-        // TODO: Let's migrate this to use the migration header instead of being appended to the request body
-        checkAuth(req.body.userToken) !== null
+        checkAuth(req.headers.authorization) !== null
             ? next()
             : res.status(401).json('User is unauthorized. Please log in.');
     } catch (err) {

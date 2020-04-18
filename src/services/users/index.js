@@ -25,6 +25,7 @@ const findUser = (knex) => (email) => {
     try {
         return knex
             .select(
+                'id',
                 'email',
                 'password',
                 'first_name',

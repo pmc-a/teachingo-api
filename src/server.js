@@ -6,7 +6,9 @@ const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
+
 const { verifyToken } = require('./middleware/check-auth');
+const { decodeToken } = require('./middleware/decode-auth');
 const { logOriginalUrl, logMethod } = require('./middleware/server-logging');
 
 const saltRounds = 12;
@@ -41,20 +43,20 @@ app.get('/api/status', (req, res) => {
 //   console.log(`issued token for ${identity} in room ${roomName}`);
 // });
 
-app.get('/api/users/:userId/lessons', privateRoutes, async (req, res) => {
+app.get('/api/lessons', privateRoutes, async (req, res) => {
     // TODO: Where are we going to verify the userId?
     // We need to know if the userId passed in is a student or a teacher.
     // We could either pass this as a param/queryParam as part of the client request (meh)
     // Or we could perform a quick SELECT on the user table server side (here) to check the type and then handle that appropriately.
+
     try {
-        const teacherLessons = await lessons.getLessonsByUserId(
-            req.params.userId
-        );
+        // Determine the userID from the userToken that has been submitted with the request
+        const { id } = decodeToken(req.headers.authorization);
+
+        const teacherLessons = await lessons.getLessonsByUserId(id);
         res.status(200).json(teacherLessons);
     } catch (error) {
-        console.error(
-            `Error fetching lessons for userId: ${req.params.userId}`
-        );
+        console.error('Error fetching lessons for user');
         res.status(500).json('Error fetching lessons');
     }
 });
@@ -89,9 +91,13 @@ app.post('/api/login', publicRoutes, async (req, res) => {
         if (user[0]) {
             const result = await bcrypt.compare(password, user[0].password);
             if (result) {
-                const token = jwt.sign({ email }, process.env.JWT_KEY, {
-                    expiresIn: '8hr',
-                });
+                const token = jwt.sign(
+                    { id: user[0].id, email },
+                    process.env.JWT_KEY,
+                    {
+                        expiresIn: '8hr',
+                    }
+                );
                 res.status(200).json({ type: user[0].type, token });
             } else {
                 console.log('Incorrect password');

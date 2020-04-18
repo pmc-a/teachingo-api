@@ -7,6 +7,11 @@ const { lessons, users } = require('../services');
 
 jest.mock('bcrypt');
 jest.mock('jsonwebtoken');
+jest.mock('../middleware/decode-auth', () => ({
+    decodeToken: () => ({
+        id: 12345,
+    }),
+}));
 jest.mock('../services');
 
 const mockSignUpData = {
@@ -40,14 +45,14 @@ describe('server', () => {
         });
     });
 
-    describe('#/api/users/:userId/lessons', () => {
+    describe('#/api/lessons', () => {
         it('should respond with a 500 error when something went wrong fetching the lessons data for a user', (done) => {
             lessons.getLessonsByUserId = jest
                 .fn()
                 .mockRejectedValue('Mock error yo!');
 
             request(app)
-                .get('/api/users/123/lessons')
+                .get('/api/lessons')
                 .expect(500)
                 .expect('Content-Type', /json/)
                 .end((err, res) => {
@@ -58,13 +63,12 @@ describe('server', () => {
         });
 
         it('should respond with a 200 and empty lesson data when user is not found', (done) => {
-            const mockUserId = 12345;
             const expectedResponse = [];
 
             lessons.getLessonsByUserId = jest.fn().mockResolvedValue([]);
 
             request(app)
-                .get(`/api/users/${mockUserId}/lessons`)
+                .get(`/api/lessons`)
                 .expect(200)
                 .expect('Content-Type', /json/)
                 .end((err, res) => {
@@ -89,7 +93,7 @@ describe('server', () => {
                 .mockResolvedValue(mockResponseBody);
 
             request(app)
-                .get(`/api/users/${mockUserId}/lessons`)
+                .get(`/api/lessons`)
                 .expect(200)
                 .end((err, res) => {
                     expect(res.body).toEqual(mockResponseBody);
