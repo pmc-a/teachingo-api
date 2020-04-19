@@ -3,10 +3,15 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 const { app } = require('../server');
-const { users } = require('../services');
+const { lessons, users } = require('../services');
 
 jest.mock('bcrypt');
 jest.mock('jsonwebtoken');
+jest.mock('../middleware/decode-auth', () => ({
+    decodeToken: () => ({
+        id: 12345,
+    }),
+}));
 jest.mock('../services');
 
 const mockSignUpData = {
@@ -24,6 +29,10 @@ const mockLoginData = {
 };
 
 describe('server', () => {
+    afterEach(() => {
+        jest.resetAllMocks();
+    });
+
     describe('#/api/status', () => {
         it('should return 200 from the status endpoint', (done) => {
             request(app)
@@ -36,11 +45,153 @@ describe('server', () => {
         });
     });
 
-    describe('#/api/create-account', () => {
-        afterEach(() => {
-            jest.resetAllMocks();
+    describe('#/api/lessons', () => {
+        it('should respond with a 500 error when something went wrong fetching the type of user', (done) => {
+            users.getUserTypeById = jest.fn().mockRejectedValue('mock-error');
+
+            request(app)
+                .get('/api/lessons')
+                .expect(500)
+                .expect('Content-Type', /json/)
+                .end((err, res) => {
+                    expect(res.body).toEqual('Error fetching lessons');
+                    if (err) return done(err);
+                    done();
+                });
         });
 
+        describe('when user type is teacher', () => {
+            beforeEach(() => {
+                users.getUserTypeById = jest
+                    .fn()
+                    .mockResolvedValue([{ type: 'teacher' }]);
+            });
+
+            it('should respond with a 500 error when something went wrong fetching the lessons data for a user', (done) => {
+                lessons.getTeacherLessonsByUserId = jest
+                    .fn()
+                    .mockRejectedValue('Mock error yo!');
+
+                request(app)
+                    .get('/api/lessons')
+                    .expect(500)
+                    .expect('Content-Type', /json/)
+                    .end((err, res) => {
+                        expect(res.body).toEqual('Error fetching lessons');
+                        if (err) return done(err);
+                        done();
+                    });
+            });
+
+            it('should respond with a 200 and empty lesson data when user is not found', (done) => {
+                const expectedResponse = [];
+
+                lessons.getTeacherLessonsByUserId = jest
+                    .fn()
+                    .mockResolvedValue([]);
+
+                request(app)
+                    .get('/api/lessons')
+                    .expect(200)
+                    .expect('Content-Type', /json/)
+                    .end((err, res) => {
+                        expect(res.body).toEqual(expectedResponse);
+                        if (err) return done(err);
+                        done();
+                    });
+            });
+
+            it('should return 200 and lesson data when lessons are succesfully fetched for a user', (done) => {
+                const mockUserId = 12345;
+                const mockResponseBody = [
+                    {
+                        id: 1,
+                        teacher_id: mockUserId,
+                        class_id: 1,
+                    },
+                ];
+
+                lessons.getTeacherLessonsByUserId = jest
+                    .fn()
+                    .mockResolvedValue(mockResponseBody);
+
+                request(app)
+                    .get('/api/lessons')
+                    .expect(200)
+                    .end((err, res) => {
+                        expect(res.body).toEqual(mockResponseBody);
+                        if (err) return done(err);
+                        done();
+                    });
+            });
+        });
+    });
+
+    describe('when user type is student', () => {
+        beforeEach(() => {
+            users.getUserTypeById = jest
+                .fn()
+                .mockResolvedValue([{ type: 'student' }]);
+        });
+
+        it('should respond with a 500 error when something went wrong fetching the lessons data for a user', (done) => {
+            lessons.getStudentLessonsByUserId = jest
+                .fn()
+                .mockRejectedValue('Mock error yo!');
+
+            request(app)
+                .get('/api/lessons')
+                .expect(500)
+                .expect('Content-Type', /json/)
+                .end((err, res) => {
+                    expect(res.body).toEqual('Error fetching lessons');
+                    if (err) return done(err);
+                    done();
+                });
+        });
+
+        it('should respond with a 200 and empty lesson data when user is not found', (done) => {
+            const expectedResponse = [];
+
+            lessons.getStudentLessonsByUserId = jest.fn().mockResolvedValue([]);
+
+            request(app)
+                .get('/api/lessons')
+                .expect(200)
+                .expect('Content-Type', /json/)
+                .end((err, res) => {
+                    expect(res.body).toEqual(expectedResponse);
+                    if (err) return done(err);
+                    done();
+                });
+        });
+
+        it('should return 200 and lesson data when lessons are succesfully fetched for a user', (done) => {
+            const mockUserId = 12345;
+            const mockResponseBody = [
+                {
+                    id: 1,
+                    teacher_id: mockUserId,
+                    class_id: 1,
+                },
+            ];
+
+            lessons.getStudentLessonsByUserId = jest
+                .fn()
+                .mockResolvedValue(mockResponseBody);
+
+            request(app)
+                .get('/api/lessons')
+                .expect(200)
+                .end((err, res) => {
+                    expect(res.body).toEqual(mockResponseBody);
+                    if (err) return done(err);
+                    done();
+                });
+        });
+    });
+
+    describe('#/api/create-account', () => {
         it('should respond with a 500 error when bcrypt fails to hash the password', (done) => {
             bcrypt.hash = jest
                 .fn()
@@ -84,9 +235,6 @@ describe('server', () => {
     });
 
     describe('#/api/login', () => {
-        afterEach(() => {
-            jest.resetAllMocks();
-        });
         it('should respond with a 500 error when no user is found', (done) => {
             users.findUser = jest.fn().mockRejectedValue('User not found');
             request(app)

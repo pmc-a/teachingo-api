@@ -25,6 +25,7 @@ const findUser = (knex) => (email) => {
     try {
         return knex
             .select(
+                'id',
                 'email',
                 'password',
                 'first_name',
@@ -40,7 +41,17 @@ const findUser = (knex) => (email) => {
     }
 };
 
+const getUserTypeById = (knex) => (id) => {
+    try {
+        return knex.select('type').from('users').where({ id });
+    } catch (error) {
+        console.log(error);
+        throw new Error('No user found');
+    }
+};
+
 module.exports = {
     createUser,
     findUser,
+    getUserTypeById,
 };

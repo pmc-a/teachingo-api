@@ -6,13 +6,15 @@ const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
+
 const { verifyToken } = require('./middleware/check-auth');
+const { decodeToken } = require('./middleware/decode-auth');
 const { logOriginalUrl, logMethod } = require('./middleware/server-logging');
 
 const saltRounds = 12;
 require('dotenv').config();
 
-const { users } = require('./services');
+const { lessons, users } = require('./services');
 
 const MAX_ALLOWED_SESSION_DURATION = 14400;
 const twilioAccountSid = process.env.TWILIO_ACCOUNT_SID;
@@ -40,6 +42,29 @@ app.get('/api/status', (req, res) => {
 //   res.send(token.toJwt());
 //   console.log(`issued token for ${identity} in room ${roomName}`);
 // });
+
+/**
+ * Fetch lessons for a particular user
+ * User is determined on their access token
+ * The JWT contains their user ID & email - this decodes the token and uses the ID to grab lessons
+ */
+app.get('/api/lessons', privateRoutes, async (req, res) => {
+    try {
+        // Determine the userID from the userToken that has been submitted with the request
+        const { id } = decodeToken(req.headers.authorization);
+        const userType = await users.getUserTypeById(id);
+
+        const lessonResult =
+            userType[0].type === 'teacher'
+                ? await lessons.getTeacherLessonsByUserId(id)
+                : await lessons.getStudentLessonsByUserId(id);
+
+        res.status(200).json(lessonResult);
+    } catch (error) {
+        console.log(error);
+        res.status(500).json('Error fetching lessons');
+    }
+});
 
 app.post('/api/create-account', publicRoutes, async (req, res) => {
     const { email, password, first_name, last_name, mobile, type } = req.body;
@@ -71,9 +96,13 @@ app.post('/api/login', publicRoutes, async (req, res) => {
         if (user[0]) {
             const result = await bcrypt.compare(password, user[0].password);
             if (result) {
-                const token = jwt.sign({ email }, process.env.JWT_KEY, {
-                    expiresIn: '8hr',
-                });
+                const token = jwt.sign(
+                    { id: user[0].id, email },
+                    process.env.JWT_KEY,
+                    {
+                        expiresIn: '8hr',
+                    }
+                );
                 res.status(200).json({ type: user[0].type, token });
             } else {
                 console.log('Incorrect password');
