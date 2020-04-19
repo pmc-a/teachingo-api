@@ -72,11 +72,9 @@ app.put(
     async (req, res) => {
         try {
             const { id } = decodeToken(req.headers.authorization);
-
             await lessons.updateLessonAttendance(req.params.lessonId, id);
 
-            console.log(req.params.lessonId);
-            res.status(200).json('We gon update some attendance here yo!');
+            res.status(200).json('Successfully updated attendance');
         } catch (error) {
             console.error(error);
             res.status(500).json('Error updating the lesson attendance');
