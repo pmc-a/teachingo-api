@@ -2,12 +2,14 @@ const knex = require('./knex');
 const {
     getStudentLessonsByUserId,
     getTeacherLessonsByUserId,
+    updateLessonAttendance,
 } = require('./lessons');
 const { createUser, findUser, getUserTypeById } = require('./users');
 
 const lessons = {
     getStudentLessonsByUserId: getStudentLessonsByUserId(knex),
     getTeacherLessonsByUserId: getTeacherLessonsByUserId(knex),
+    updateLessonAttendance: updateLessonAttendance(knex),
 };
 
 const users = {

@@ -28,7 +28,20 @@ const getStudentLessonsByUserId = (knex) => (userId) => {
     }
 };
 
+const updateLessonAttendance = (knex) => (lessonId, userId) => {
+    try {
+        return knex('lesson_attendees').insert({
+            lesson_id: lessonId,
+            student_id: userId,
+        });
+    } catch (error) {
+        console.error(error);
+        throw new Error('Error updating the lesson attendance');
+    }
+};
+
 module.exports = {
     getStudentLessonsByUserId,
     getTeacherLessonsByUserId,
+    updateLessonAttendance,
 };

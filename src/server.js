@@ -66,6 +66,22 @@ app.get('/api/lessons', privateRoutes, async (req, res) => {
     }
 });
 
+app.put(
+    '/api/lessons/:lessonId/attendance',
+    privateRoutes,
+    async (req, res) => {
+        try {
+            const { id } = decodeToken(req.headers.authorization);
+            await lessons.updateLessonAttendance(req.params.lessonId, id);
+
+            res.status(200).json('Successfully updated attendance');
+        } catch (error) {
+            console.error(error);
+            res.status(500).json('Error updating the lesson attendance');
+        }
+    }
+);
+
 app.post('/api/create-account', publicRoutes, async (req, res) => {
     const { email, password, first_name, last_name, mobile, type } = req.body;
 

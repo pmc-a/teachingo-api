@@ -270,4 +270,37 @@ describe('server', () => {
                 .expect(200, done);
         });
     });
+
+    describe('#/api/lessons/:lessonId/attendance', () => {
+        it('should respond with a 500 error if something goes wrong updating the database', (done) => {
+            lessons.updateLessonAttendance = jest
+                .fn()
+                .mockRejectedValue('mock error!');
+
+            request(app)
+                .put('/api/lessons/1/attendance')
+                .set('Accept', 'application/json')
+                .expect('Content-Type', /json/)
+                .expect(500, done);
+        });
+
+        it('should respond with a 200 success whenever the database successfully updates with attendance', (done) => {
+            const expectedResponse = 'Successfully updated attendance';
+
+            lessons.updateLessonAttendance = jest
+                .fn()
+                .mockResolvedValue('Mock success');
+
+            request(app)
+                .put('/api/lessons/1/attendance')
+                .set('Accept', 'application/json')
+                .expect('Content-Type', /json/)
+                .expect(200)
+                .end((err, res) => {
+                    expect(res.body).toEqual(expectedResponse);
+                    if (err) return done(err);
+                    done();
+                });
+        });
+    });
 });
