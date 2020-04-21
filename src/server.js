@@ -31,18 +31,6 @@ app.get('/api/status', (req, res) => {
     res.status(200).end();
 });
 
-// app.get('/token', (req, res) => {
-//   const { identity, roomName } = req.query;
-//   const token = new AccessToken(twilioAccountSid, twilioApiKeySID, twilioApiKeySecret, {
-//     ttl: MAX_ALLOWED_SESSION_DURATION,
-//   });
-//   token.identity = identity;
-//   const videoGrant = new VideoGrant({ room: roomName });
-//   token.addGrant(videoGrant);
-//   res.send(token.toJwt());
-//   console.log(`issued token for ${identity} in room ${roomName}`);
-// });
-
 /**
  * Fetch lessons for a particular user
  * User is determined on their access token
@@ -131,6 +119,52 @@ app.post('/api/login', publicRoutes, async (req, res) => {
     } catch (error) {
         console.error(error);
         res.status(500).json('Something went wrong');
+    }
+});
+
+app.get('/api/token', privateRoutes, async (req, res) => {
+    try {
+        const { lessonId } = req.query;
+        const { id } = decodeToken(req.headers.authorization);
+        const user = await users.getUserById(id);
+
+        // This will be used to form the identity
+        const firstName = user[0].first_name;
+        const lastName = user[0].last_name;
+
+        const classInformation = await lessons.getClassInformationByLessonId(
+            lessonId
+        );
+        const className = classInformation[0].name;
+
+        // Format will be lessonId-userId-firstName-lastName
+        const identity = `${lessonId}-${id}-${firstName}-${lastName}`;
+
+        // Combination of class name && lessonID to make up the roomName
+        // Format will be lessonId-className
+        const roomName = `${lessonId}-${className}`;
+
+        const token = new AccessToken(
+            twilioAccountSid,
+            twilioApiKeySID,
+            twilioApiKeySecret,
+            {
+                ttl: MAX_ALLOWED_SESSION_DURATION,
+            }
+        );
+
+        token.identity = identity;
+        const videoGrant = new VideoGrant({ room: roomName });
+        token.addGrant(videoGrant);
+
+        console.log(
+            `Issued Twilio Video token for ${identity} in room ${roomName}`
+        );
+
+        res.send(token.toJwt());
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Something went wrong fetching the video token!');
     }
 });
 
