@@ -1,3 +1,16 @@
+const getClassInformationByLessonId = (knex) => (lessonId) => {
+    console.log({ lessonId });
+    try {
+        return knex('lessons')
+            .join('classes', 'lessons.class_id', 'classes.id')
+            .select('classes.name')
+            .where({ 'lessons.id': lessonId });
+    } catch (error) {
+        console.log(error);
+        throw new Error('Error fetching class information with the lesson ID');
+    }
+};
+
 const getTeacherLessonsByUserId = (knex) => (userId) => {
     try {
         // This is _specifically_ for teachers right now as we're filtering on teacher_id
@@ -41,6 +54,7 @@ const updateLessonAttendance = (knex) => (lessonId, userId) => {
 };
 
 module.exports = {
+    getClassInformationByLessonId,
     getStudentLessonsByUserId,
     getTeacherLessonsByUserId,
     updateLessonAttendance,
