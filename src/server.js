@@ -168,7 +168,7 @@ app.get('/api/token', privateRoutes, async (req, res) => {
     }
 });
 
-app.get('/api/lessons/:lessonId/stats', publicRoutes, async (req, res) => {
+app.get('/api/lessons/:lessonId/stats', privateRoutes, async (req, res) => {
     const { lessonId } = req.params;
     try {
         const studentsInClass = await lessonStats.getStudentsInClass(lessonId);
