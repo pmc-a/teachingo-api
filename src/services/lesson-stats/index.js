@@ -1,9 +1,29 @@
-const getStudentsInClass = (knex) => (id) => {
+const getStudentsInClass = (knex) => async (id) => {
     try {
-        return knex('lessons')
+        const studentsInClass = await knex('lessons')
             .join('user_class', 'lessons.class_id', 'user_class.class_id')
             .select('user_class.student_id')
             .where({ 'lessons.id': id });
+
+        return studentsInClass.length;
+    } catch (error) {
+        console.log(error);
+        throw new Error('No lesson found');
+    }
+};
+
+const getAttendedStudents = (knex) => async (id) => {
+    try {
+        const attendedStudents = await knex('lessons')
+            .join(
+                'lesson_attendees',
+                'lessons.id',
+                'lesson_attendees.lesson_id'
+            )
+            .select('lesson_attendees.student_id')
+            .where({ 'lessons.id': id });
+
+        return attendedStudents.length;
     } catch (error) {
         console.log(error);
         throw new Error('No lesson found');
@@ -12,4 +32,5 @@ const getStudentsInClass = (knex) => (id) => {
 
 module.exports = {
     getStudentsInClass,
+    getAttendedStudents,
 };

@@ -172,7 +172,15 @@ app.get('/api/lessons/:lessonId/stats', publicRoutes, async (req, res) => {
     const { lessonId } = req.params;
     try {
         const studentsInClass = await lessonStats.getStudentsInClass(lessonId);
-        res.status(200).json('Successfully calculated attendance');
+        const attendedStudents = await lessonStats.getAttendedStudents(
+            lessonId
+        );
+
+        res.status(200).json({
+            studentsInClass: studentsInClass,
+            attendedStudents: attendedStudents,
+            percentageAttended: (attendedStudents / studentsInClass) * 100,
+        });
     } catch (error) {
         console.error(error);
     }

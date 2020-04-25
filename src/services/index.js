@@ -12,7 +12,7 @@ const {
     getUserTypeById,
 } = require('./users');
 
-const { getStudentsInClass } = require('./lesson-stats');
+const { getStudentsInClass, getAttendedStudents } = require('./lesson-stats');
 
 const lessons = {
     getClassInformationByLessonId: getClassInformationByLessonId(knex),
@@ -30,6 +30,7 @@ const users = {
 
 const lessonStats = {
     getStudentsInClass: getStudentsInClass(knex),
+    getAttendedStudents: getAttendedStudents(knex),
 };
 
 module.exports = {
