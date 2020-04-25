@@ -14,7 +14,7 @@ const { logOriginalUrl, logMethod } = require('./middleware/server-logging');
 const saltRounds = 12;
 require('dotenv').config();
 
-const { lessons, users } = require('./services');
+const { lessons, users, lessonStats } = require('./services');
 
 const MAX_ALLOWED_SESSION_DURATION = 14400;
 const twilioAccountSid = process.env.TWILIO_ACCOUNT_SID;
@@ -165,6 +165,24 @@ app.get('/api/token', privateRoutes, async (req, res) => {
     } catch (error) {
         console.error(error);
         res.status(500).send('Something went wrong fetching the video token!');
+    }
+});
+
+app.get('/api/lessons/:lessonId/stats', privateRoutes, async (req, res) => {
+    const { lessonId } = req.params;
+    try {
+        const studentsInClass = await lessonStats.getStudentsInClass(lessonId);
+        const attendedStudents = await lessonStats.getAttendedStudents(
+            lessonId
+        );
+
+        res.status(200).json({
+            studentsInClass: studentsInClass,
+            attendedStudents: attendedStudents,
+            percentageAttended: (attendedStudents / studentsInClass) * 100,
+        });
+    } catch (error) {
+        console.error(error);
     }
 });
 
