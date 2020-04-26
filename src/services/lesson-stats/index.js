@@ -5,7 +5,10 @@ const getStudentsInClass = (knex) => async (id) => {
             .select('user_class.student_id')
             .where({ 'lessons.id': id });
 
-        return studentsInClass.length;
+        const studentsInClassIds = studentsInClass.map(
+            (student) => student.student_id
+        );
+        return studentsInClassIds;
     } catch (error) {
         console.log(error);
         throw new Error('No lesson found');
@@ -23,7 +26,10 @@ const getAttendedStudents = (knex) => async (id) => {
             .select('lesson_attendees.student_id')
             .where({ 'lessons.id': id });
 
-        return attendedStudents.length;
+        const attendedStudentsIds = attendedStudents.map(
+            (student) => student.student_id
+        );
+        return attendedStudentsIds;
     } catch (error) {
         console.log(error);
         throw new Error('No lesson found');

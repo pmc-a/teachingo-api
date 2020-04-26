@@ -50,6 +50,18 @@ const getUserById = (knex) => (id) => {
     }
 };
 
+const getUserNameById = (knex) => (id) => {
+    try {
+        return knex
+            .select('id', 'first_name', 'last_name')
+            .from('users')
+            .where({ id });
+    } catch (error) {
+        console.log(error);
+        throw new Error('No user found');
+    }
+};
+
 const getUserTypeById = (knex) => (id) => {
     try {
         return knex.select('type').from('users').where({ id });
@@ -63,5 +75,6 @@ module.exports = {
     createUser,
     findUser,
     getUserById,
+    getUserNameById,
     getUserTypeById,
 };

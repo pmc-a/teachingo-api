@@ -168,6 +168,11 @@ app.get('/api/token', privateRoutes, async (req, res) => {
     }
 });
 
+const fetchUser = async (id) => {
+    const result = await users.getUserNameById(id);
+    return result[0];
+};
+
 app.get('/api/lessons/:lessonId/stats', privateRoutes, async (req, res) => {
     const { lessonId } = req.params;
     try {
@@ -176,10 +181,27 @@ app.get('/api/lessons/:lessonId/stats', privateRoutes, async (req, res) => {
             lessonId
         );
 
+        const numStudentsInClass = studentsInClass.length;
+        const numAttendedStudents = attendedStudents.length;
+
+        const absentStudentsIds = studentsInClass.filter(
+            (student) => !attendedStudents.includes(student)
+        );
+
+        absentStudentsIds.forEach((id) => fetchUser(id));
+        let absentStudentsDetails = [];
+
+        for (let i = 0; i <= absentStudentsIds.length - 1; i++) {
+            result = await fetchUser(absentStudentsIds[i]);
+            absentStudentsDetails.push(result);
+        }
+
         res.status(200).json({
-            studentsInClass: studentsInClass,
-            attendedStudents: attendedStudents,
-            percentageAttended: (attendedStudents / studentsInClass) * 100,
+            numStudentsInClass: numStudentsInClass,
+            numAttendedStudents: numAttendedStudents,
+            percentageAttended:
+                (numAttendedStudents / numStudentsInClass) * 100,
+            absentStudentsDetails: absentStudentsDetails,
         });
     } catch (error) {
         console.error(error);

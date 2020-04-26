@@ -9,6 +9,7 @@ const {
     createUser,
     findUser,
     getUserById,
+    getUserNameById,
     getUserTypeById,
 } = require('./users');
 
@@ -25,6 +26,7 @@ const users = {
     createUser: createUser(knex),
     findUser: findUser(knex),
     getUserById: getUserById(knex),
+    getUserNameById: getUserNameById(knex),
     getUserTypeById: getUserTypeById(knex),
 };
 
