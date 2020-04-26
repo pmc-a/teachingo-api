@@ -11,6 +11,7 @@ const {
     getUserById,
     getUserNameById,
     getUserTypeById,
+    getUserMobileById,
 } = require('./users');
 
 const { getStudentsInClass, getAttendedStudents } = require('./lesson-stats');
@@ -28,6 +29,7 @@ const users = {
     getUserById: getUserById(knex),
     getUserNameById: getUserNameById(knex),
     getUserTypeById: getUserTypeById(knex),
+    getUserMobileById: getUserMobileById(knex),
 };
 
 const lessonStats = {

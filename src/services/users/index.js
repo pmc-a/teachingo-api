@@ -71,10 +71,20 @@ const getUserTypeById = (knex) => (id) => {
     }
 };
 
+const getUserMobileById = (knex) => (id) => {
+    try {
+        return knex.select('mobile').from('users').where({ id });
+    } catch (error) {
+        console.log(error);
+        throw new Error('No user found');
+    }
+};
+
 module.exports = {
     createUser,
     findUser,
     getUserById,
     getUserNameById,
     getUserTypeById,
+    getUserMobileById,
 };
