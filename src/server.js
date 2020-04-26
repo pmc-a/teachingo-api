@@ -233,12 +233,10 @@ const sendMessageToStudent = async (className, mobileNumber, res) => {
 };
 
 app.post(
-    '/api/lesson/:lessonId/attendance',
+    '/api/lessons/:lessonId/absentees',
     privateRoutes,
     async (req, res) => {
-        const absentStudents = req.body.studentIds;
-
-        console.log(absentStudents);
+        const absentStudents = req.body.absentStudents;
 
         const className = await lessons.getClassInformationByLessonId(
             req.params.lessonId
