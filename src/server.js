@@ -3,7 +3,7 @@ const twilioAccountSid = process.env.TWILIO_ACCOUNT_SID;
 const twilioApiKeySID = process.env.TWILIO_API_KEY_SID;
 const twilioApiKeySecret = process.env.TWILIO_API_KEY_SECRET;
 const twilioAuthToken = process.env.TWILIO_AUTH_TOKEN;
-const twilioMobileNumebr = process.env.TWILIO_MOBILE_NUMBER;
+const twilioMobileNumber = process.env.TWILIO_MOBILE_NUMBER;
 
 const express = require('express');
 const app = express();
@@ -219,7 +219,7 @@ const sendMessageToStudent = async (className, mobileNumber, res) => {
     contactClient.messages
         .create({
             body: `You missed today's ${className.name} lesson, please make sure you catch up on content and attend the next one! If you are not able to attend for any reason please let me know!`,
-            from: twilioMobileNumebr,
+            from: twilioMobileNumber,
             to: mobileNumber,
         })
         .then((message) => {
