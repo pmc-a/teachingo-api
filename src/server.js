@@ -1,5 +1,3 @@
-const MAX_ALLOWED_SESSION_DURATION = 14400;
-
 const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
