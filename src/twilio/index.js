@@ -1,12 +1,12 @@
-const AccessToken = require('twilio').jwt.AccessToken;
-const contactClient = require('twilio')(twilioAccountSid, twilioAuthToken);
-const VideoGrant = AccessToken.VideoGrant;
-
 const twilioAccountSid = process.env.TWILIO_ACCOUNT_SID;
 const twilioApiKeySID = process.env.TWILIO_API_KEY_SID;
 const twilioApiKeySecret = process.env.TWILIO_API_KEY_SECRET;
 const twilioAuthToken = process.env.TWILIO_AUTH_TOKEN;
 const twilioMobileNumber = process.env.TWILIO_MOBILE_NUMBER;
+
+const AccessToken = require('twilio').jwt.AccessToken;
+const contactClient = require('twilio')(twilioAccountSid, twilioAuthToken);
+const VideoGrant = AccessToken.VideoGrant;
 
 const getAccessToken = () => {
     const token = new AccessToken(
