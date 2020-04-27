@@ -1,8 +1,6 @@
 const request = require('supertest');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const twilio = require('twilio');
-const AccessToken = require('twilio').jwt.AccessToken;
 
 const { app } = require('../server');
 const { lessons, users } = require('../services');
@@ -13,6 +11,13 @@ jest.mock('../middleware/decode-auth', () => ({
     decodeToken: () => ({
         id: 12345,
     }),
+}));
+jest.mock('../twilio', () => ({
+    getAccessToken: jest.fn().mockReturnValue({
+        identity: '',
+        addGrant: jest.fn(),
+    }),
+    getVideoGrant: jest.fn().mockReturnValue(''),
 }));
 jest.mock('../services');
 

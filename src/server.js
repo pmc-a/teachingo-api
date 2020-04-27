@@ -1,15 +1,7 @@
 const MAX_ALLOWED_SESSION_DURATION = 14400;
-const twilioAccountSid = process.env.TWILIO_ACCOUNT_SID;
-const twilioApiKeySID = process.env.TWILIO_API_KEY_SID;
-const twilioApiKeySecret = process.env.TWILIO_API_KEY_SECRET;
-const twilioAuthToken = process.env.TWILIO_AUTH_TOKEN;
-const twilioMobileNumber = process.env.TWILIO_MOBILE_NUMBER;
 
 const express = require('express');
 const app = express();
-const AccessToken = require('twilio').jwt.AccessToken;
-const contactClient = require('twilio')(twilioAccountSid, twilioAuthToken);
-const VideoGrant = AccessToken.VideoGrant;
 const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -18,6 +10,12 @@ const cors = require('cors');
 const { verifyToken } = require('./middleware/check-auth');
 const { decodeToken } = require('./middleware/decode-auth');
 const { logOriginalUrl, logMethod } = require('./middleware/server-logging');
+
+const {
+    getAccessToken,
+    getVideoGrant,
+    sendMessageToStudent,
+} = require('./twilio');
 
 const saltRounds = 12;
 require('dotenv').config();
@@ -147,17 +145,10 @@ app.get('/api/token', privateRoutes, async (req, res) => {
         // Format will be lessonId-className
         const roomName = `${lessonId}-${className}`;
 
-        const token = new AccessToken(
-            twilioAccountSid,
-            twilioApiKeySID,
-            twilioApiKeySecret,
-            {
-                ttl: MAX_ALLOWED_SESSION_DURATION,
-            }
-        );
+        const token = getAccessToken();
 
         token.identity = identity;
-        const videoGrant = new VideoGrant({ room: roomName });
+        const videoGrant = getVideoGrant(roomName);
         token.addGrant(videoGrant);
 
         console.log(
@@ -213,23 +204,6 @@ app.get('/api/lessons/:lessonId/stats', privateRoutes, async (req, res) => {
 const fetchMobile = async (id) => {
     const number = await users.getUserMobileById(id);
     return number[0];
-};
-
-const sendMessageToStudent = async (className, mobileNumber, res) => {
-    contactClient.messages
-        .create({
-            body: `You missed today's ${className.name} lesson, please make sure you catch up on content and attend the next one! If you are not able to attend for any reason please let me know!`,
-            from: twilioMobileNumber,
-            to: mobileNumber,
-        })
-        .then((message) => {
-            console.log(message.sid);
-            res.status(200).json('ok');
-        })
-        .catch((error) => {
-            console.log(error);
-            res.status(500).json('An error occured contacting student');
-        });
 };
 
 app.post(
