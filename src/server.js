@@ -1,7 +1,7 @@
+const MAX_ALLOWED_SESSION_DURATION = 14400;
+
 const express = require('express');
 const app = express();
-const AccessToken = require('twilio').jwt.AccessToken;
-const VideoGrant = AccessToken.VideoGrant;
 const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -11,15 +11,16 @@ const { verifyToken } = require('./middleware/check-auth');
 const { decodeToken } = require('./middleware/decode-auth');
 const { logOriginalUrl, logMethod } = require('./middleware/server-logging');
 
+const {
+    getAccessToken,
+    getVideoGrant,
+    sendMessageToStudent,
+} = require('./twilio');
+
 const saltRounds = 12;
 require('dotenv').config();
 
 const { lessons, users, lessonStats } = require('./services');
-
-const MAX_ALLOWED_SESSION_DURATION = 14400;
-const twilioAccountSid = process.env.TWILIO_ACCOUNT_SID;
-const twilioApiKeySID = process.env.TWILIO_API_KEY_SID;
-const twilioApiKeySecret = process.env.TWILIO_API_KEY_SECRET;
 
 app.use(bodyParser.json());
 app.use(cors());
@@ -144,17 +145,10 @@ app.get('/api/token', privateRoutes, async (req, res) => {
         // Format will be lessonId-className
         const roomName = `${lessonId}-${className}`;
 
-        const token = new AccessToken(
-            twilioAccountSid,
-            twilioApiKeySID,
-            twilioApiKeySecret,
-            {
-                ttl: MAX_ALLOWED_SESSION_DURATION,
-            }
-        );
+        const token = getAccessToken();
 
         token.identity = identity;
-        const videoGrant = new VideoGrant({ room: roomName });
+        const videoGrant = getVideoGrant(roomName);
         token.addGrant(videoGrant);
 
         console.log(
@@ -188,7 +182,6 @@ app.get('/api/lessons/:lessonId/stats', privateRoutes, async (req, res) => {
             (student) => !attendedStudents.includes(student)
         );
 
-        absentStudentsIds.forEach((id) => fetchUser(id));
         let absentStudentsDetails = [];
 
         for (let i = 0; i <= absentStudentsIds.length - 1; i++) {
@@ -207,5 +200,28 @@ app.get('/api/lessons/:lessonId/stats', privateRoutes, async (req, res) => {
         console.error(error);
     }
 });
+
+const fetchMobile = async (id) => {
+    const number = await users.getUserMobileById(id);
+    return number[0];
+};
+
+app.post(
+    '/api/lessons/:lessonId/absentees',
+    privateRoutes,
+    async (req, res) => {
+        const absentStudents = req.body.absentStudents;
+
+        const className = await lessons.getClassInformationByLessonId(
+            req.params.lessonId
+        );
+
+        for (let i = 0; i <= absentStudents.length - 1; i++) {
+            number = await fetchMobile(absentStudents[i]);
+            console.log(number.mobile);
+            await sendMessageToStudent(className[0], number.mobile, res);
+        }
+    }
+);
 
 module.exports = { app };

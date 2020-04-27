@@ -12,6 +12,13 @@ jest.mock('../middleware/decode-auth', () => ({
         id: 12345,
     }),
 }));
+jest.mock('../twilio', () => ({
+    getAccessToken: jest.fn().mockReturnValue({
+        identity: '',
+        addGrant: jest.fn(),
+    }),
+    getVideoGrant: jest.fn().mockReturnValue(''),
+}));
 jest.mock('../services');
 
 const mockSignUpData = {
