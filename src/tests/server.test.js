@@ -1,6 +1,8 @@
 const request = require('supertest');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const twilio = require('twilio');
+const AccessToken = require('twilio').jwt.AccessToken;
 
 const { app } = require('../server');
 const { lessons, users } = require('../services');
@@ -13,7 +15,6 @@ jest.mock('../middleware/decode-auth', () => ({
     }),
 }));
 jest.mock('../services');
-jest.mock('twilio');
 
 const mockSignUpData = {
     email: 'mock@test.com',
