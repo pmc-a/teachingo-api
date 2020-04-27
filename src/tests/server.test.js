@@ -13,6 +13,7 @@ jest.mock('../middleware/decode-auth', () => ({
     }),
 }));
 jest.mock('../services');
+jest.mock('twilio');
 
 const mockSignUpData = {
     email: 'mock@test.com',
